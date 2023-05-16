@@ -70,31 +70,40 @@ if row := cursor.fetchone():  # this works fine
 import pytest
 import pymysqlite
 
+# import tested module as a pytest fixture
 @pytest.fixture
-def mymodule():  # import tested module as a fixture
-    import mymodule
+def mymodule():
+    from myproject import mymodule
     return mymodule
 
 @pytest.fixture
-def fake_db():
+def fake_conn():
     connection = pymysqlite.connect(":memory:")
     return connection
 
-@pytest.fixture
-def load_test_data(fake_db)
-    fake_db.executescript("import_test_data.sql")
-    fake_db.commit()
-    return fake_db
-
-def test_my_method(mymodule, fake_db, load_test_data):
-    """testing a method using dependency injection"""
-    mymodule._my_method(conn=fake_db)
+TEST_SQL = """
+CREATE TABLE users (id INTEGER, name TEXT);
+INSERT INTO users VALUES (1, "foo"), (2, "bar");
+"""
 
 @pytest.fixture
-def patch_conn(monkeypatch, mymodule)
-    monkeypatch.setattr(mymodule, "connect", return_value=fake_db)
+def load_test_data(fake_conn)
+    fake_conn.executescript(TEST_SQL)
+    fake_conn.commit()
+    return fake_conn
 
-def test_without_di(mymodule, patch_conn):
-    """testing a method without dependency injection"""
+# test a method by passing in fake_conn (dependency injection)
+
+@pytest.usefixtures("load_test_data")
+def test_my_method(mymodule, fake_conn):
+    mymodule._my_method(conn=fake_conn)
+
+# test a method by monkeypatching mymodule.connect()
+
+@pytest.fixture
+def patch_conn(monkeypatch, mymodule, fake_conn)
+    monkeypatch.setattr(mymodule, "connect", lambda: fake_conn)
+
+def test_monkeypatched_method(mymodule, patch_conn):
     mymodule.my_method()
 ```
