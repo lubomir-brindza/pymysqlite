@@ -28,3 +28,9 @@ repos:
     rev: v1.2.0
     hooks:
     -   id: mypy
+        args: [
+          "--python-executable",
+          "./env/bin/python",
+          "--ignore-missing-imports",
+          "--implicit-optional"
+        ]
