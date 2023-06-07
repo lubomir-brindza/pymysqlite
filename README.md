@@ -16,7 +16,7 @@ The first and most glaring difference is in how each library treats its SQL plac
 
 ```python
 sqlite_cursor.execute("SELECT * FROM users where id=?", (1, ))  # sqlite3
-pymysql_cursor.execute("SELECT * FROM users where id=%d", (1, ))  # pymysql
+pymysql_cursor.execute("SELECT * FROM users where id=%s", (1, ))  # pymysql
 ```
 
 Another difference is that while `pymysql` allows instantiating a cursor via a context manager, `sqlite3` does not:
