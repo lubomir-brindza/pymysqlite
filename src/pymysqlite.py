@@ -7,9 +7,17 @@ from warnings import warn
 
 
 def _translate(sql: str) -> str:
-    # replace placeholders
-    sql = re.sub(r"%[a-z]\b", "?", sql)
-    sql = re.sub(r"%\(([a-z]+)\)[a-z]\b", r":\1", sql)
+    # replace %s and %(name)s placeholders
+    sql = re.sub(r"%s\b", "?", sql)
+    sql = re.sub(r"%\(([a-z]+)\)s\b", r":\1", sql)
+
+    if re.findall(r"%[a-z]\b", sql) or re.findall(r"%\(([a-z]+)\)[a-z]\b", sql):
+        warn(
+            r"Placeholders other than %s / %(name)s found in the SQL statement, "
+            "this is probably an error. PyMySQL does not support these - refer to "
+            "https://pymysql.readthedocs.io/en/latest/modules/cursors.html#pymysql.cursors.Cursor.execute"
+        )
+
     return sql
 
 
